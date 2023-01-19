@@ -36,18 +36,25 @@ class Exorcist:
         self.unit_duration = 1 / (tempo / 60)
         self.loudness = loudness
 
+    def mute(self):
+        for buzzer in self.buzzers:
+            buzzer.set_loudness(0)
+
     def play(self):
-        for i, note in enumerate(self.notes):
+        for note in self.notes:
             if self.led is not None:
                 self.led.high() if random.random() > 0.5 else self.led.low()
-            for j, buzzer in enumerate(self.buzzers):
-                octave = 4 if j % 2 == 0 else 3
+            for buzzer in self.buzzers:
+                octave = random.choice((3, 4))
                 octave = octave if note not in "CD" else octave + 1
                 tone = Tone(note, octave, 1, self.loudness)
                 buzzer.set_frequency(tone.pitch)
                 buzzer.set_loudness(self.loudness)
-                sleep(tone.duration * self.unit_duration)
-            for buzzer in self.buzzers:
-                buzzer.set_loudness(0)
+            note_time = tone.duration * self.unit_duration
+            mute_ratio = random.uniform(0.01, 0.1)
+            sleep(note_time * (1 - mute_ratio))
+            self.mute()
+            sleep(note_time * mute_ratio)
+        self.mute()
         if self.led is not None:
             self.led.low()
